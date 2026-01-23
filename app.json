@@ -1,4 +1,13 @@
 {
   "name": "TimeTrackingApp",
-  "displayName": "TimeTrackingApp"
+  "displayName": "TimeTrackingApp",
+  "expo": {
+    "name": "TimeTrackingApp",
+    "slug": "time-tracking-app",
+    "version": "1.0.0",
+    "platforms": ["ios", "android", "web"],
+    "web": {
+      "bundler": "metro"
+    }
+  }
 }

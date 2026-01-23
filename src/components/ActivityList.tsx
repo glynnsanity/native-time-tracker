@@ -1,61 +1,36 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { FlatList, Text, View, StyleSheet } from 'react-native';
 import ActivityItem from './ActivityItem';
-import { Activity, Timer } from '../types';
+import { Activity } from '../types';
 
 interface ActivityListProps {
   activities: Activity[];
-  timer: Timer;
-  onEditName: (id: string, newName: string) => void;
   onStartStop: (id: string) => void;
-  onClearTime: (id: string) => void;
-  onEditTime: (id: string, newTime: number) => void;
-  onDeleteActivity: (id: string) => void;
+  onMenuPress: (id: string) => void;
 }
 
-const ActivityList: React.FC<ActivityListProps> = ({
-  activities,
-  timer,
-  onEditName,
-  onStartStop,
-  onClearTime,
-  onEditTime,
-  onDeleteActivity,
-}) => {
-
-  if (activities.length === 0) {
-    return <Text style={styles.emptyText}>No activities yet. Add one to get started!</Text>;
-  }
-  
+const ActivityList: React.FC<ActivityListProps> = ({ activities, onStartStop, onMenuPress }) => {
   return (
-    <View style={styles.container}>
-      {activities.map((activity) => (
-        <ActivityItem
-          key={activity.id}
-          activity={activity}
-          timer={timer}
-          onEditName={onEditName}
-          onStartStop={onStartStop}
-          onClearTime={onClearTime}
-          onEditTime={onEditTime}
-          onDeleteActivity={onDeleteActivity}
-        />
-      ))}
+    <View>
+      <Text style={styles.header}>Activities</Text>
+      <FlatList
+        data={activities}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ActivityItem activity={item} onStartStop={onStartStop} onMenuPress={onMenuPress} />
+        )}
+      />
     </View>
   );
 };
 
-export default ActivityList;
-
-// Define styles
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#888',
-    textAlign: 'center',
-    marginVertical: 20,
+  header: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginHorizontal: 16,
+    marginBottom: 12,
   },
 });
+
+export default ActivityList;
