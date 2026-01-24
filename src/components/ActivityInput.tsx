@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { TextInput, View, StyleSheet } from 'react-native';
-import { TouchableOpacity } from 'react-native';
+import { TextInput, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, spacing, typography, borderRadius } from '../theme';
 
 interface ActivityInputProps {
   onAddActivity: (name: string) => void;
@@ -12,31 +12,27 @@ const ActivityInput: React.FC<ActivityInputProps> = ({ onAddActivity }) => {
 
   const handleAdd = () => {
     if (activityName.trim()) {
-      onAddActivity(activityName);
+      onAddActivity(activityName.trim());
       setActivityName('');
     }
   };
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity
+      style={styles.container}
+      activeOpacity={1}
+    >
+      <Ionicons name="add" size={20} color={colors.primary} style={styles.addIcon} />
       <TextInput
         style={styles.input}
-        placeholder="+ Add new activity"
-        placeholderTextColor="#999"
+        placeholder="Add new activity"
+        placeholderTextColor={colors.textTertiary}
         value={activityName}
         onChangeText={setActivityName}
         onSubmitEditing={handleAdd}
         returnKeyType="done"
       />
-      <TouchableOpacity
-        onPress={handleAdd}
-        style={styles.addButton}
-        accessibilityRole="button"
-        accessibilityLabel="Add activity"
-      >
-        <Ionicons name="add" size={24} color="white" />
-      </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -44,22 +40,23 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F6F6F6',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
-    marginHorizontal: 16,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.lg,
+    marginHorizontal: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  addIcon: {
+    marginRight: spacing.sm,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    color: '#333',
-  },
-  addButton: {
-    backgroundColor: '#0B4850',
-    borderRadius: 8,
-    padding: 8,
+    ...typography.body,
+    color: colors.textPrimary,
+    padding: 0,
   },
 });
 

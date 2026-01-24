@@ -1,25 +1,22 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
-import ActivityInput from './components/ActivityInput';
-import ActivityList from './components/ActivityList';
-import { useActivities } from './hooks/useActivities';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StyleSheet } from 'react-native';
+import { AuthProvider } from './contexts/AuthContext';
+import Navigation from './navigation';
 
 const App: React.FC = () => {
-  const { activities, addActivity, toggleActivityRunning, deleteActivity } = useActivities();
-
   return (
-    <SafeAreaView style={styles.container}>
-      <ActivityInput onAddActivity={addActivity} />
-      <ActivityList activities={activities} onStartStop={toggleActivityRunning} onDelete={deleteActivity} />
-    </SafeAreaView>
+    <GestureHandlerRootView style={styles.container}>
+      <AuthProvider>
+        <Navigation />
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7F9',
-    paddingTop: 16,
   },
 });
 

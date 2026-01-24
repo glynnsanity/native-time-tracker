@@ -2,14 +2,19 @@ import React from 'react';
 import { FlatList, Text, View, StyleSheet } from 'react-native';
 import ActivityItem from './ActivityItem';
 import { Activity } from '../types';
+import { colors, spacing, typography } from '../theme';
 
 interface ActivityListProps {
   activities: Activity[];
   onStartStop: (id: string) => void;
-  onDelete: (id: string) => void;
+  onMenuPress: (activity: Activity) => void;
 }
 
-const ActivityList: React.FC<ActivityListProps> = ({ activities, onStartStop, onDelete }) => {
+const ActivityList: React.FC<ActivityListProps> = ({
+  activities,
+  onStartStop,
+  onMenuPress,
+}) => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Activities</Text>
@@ -20,8 +25,13 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, onStartStop, on
           data={activities}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <ActivityItem activity={item} onStartStop={onStartStop} onDelete={onDelete} />
+            <ActivityItem
+              activity={item}
+              onStartStop={onStartStop}
+              onMenuPress={onMenuPress}
+            />
           )}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -33,17 +43,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginHorizontal: 16,
-    marginBottom: 12,
+    ...typography.h3,
+    color: colors.textPrimary,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#999',
+    ...typography.body,
+    color: colors.textTertiary,
     textAlign: 'center',
-    marginTop: 32,
-    marginHorizontal: 16,
+    marginTop: spacing['3xl'],
+    marginHorizontal: spacing.lg,
   },
 });
 
