@@ -42,10 +42,10 @@ export function useActivities() {
     }
   }, [activities]);
 
-  const addActivity = useCallback(() => {
+  const addActivity = useCallback((name: string) => {
     const newActivity: Activity = {
-      id: uuid.v4().toString(),  // Convert to string
-      name: 'New Activity',
+      id: uuid.v4().toString(),
+      name: name.trim() || 'New Activity',
       time: 0,
       running: false,
       start: null,
@@ -63,11 +63,27 @@ export function useActivities() {
 
   const toggleActivityRunning = useCallback((id: string) => {
     setActivities(prev =>
-      prev.map(activity =>
-        activity.id === id
-          ? { ...activity, running: !activity.running, start: !activity.running ? Date.now() : null }
-          : activity
-      )
+      prev.map(activity => {
+        if (activity.id !== id) return activity;
+
+        if (activity.running && activity.start) {
+          // Stopping: accumulate elapsed time
+          const elapsed = (Date.now() - activity.start) / 1000;
+          return {
+            ...activity,
+            running: false,
+            time: activity.time + elapsed,
+            start: null,
+          };
+        } else {
+          // Starting: record start time
+          return {
+            ...activity,
+            running: true,
+            start: Date.now(),
+          };
+        }
+      })
     );
   }, []);
 

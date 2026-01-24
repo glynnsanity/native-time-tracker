@@ -6,30 +6,44 @@ import { Activity } from '../types';
 interface ActivityListProps {
   activities: Activity[];
   onStartStop: (id: string) => void;
-  onMenuPress: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
-const ActivityList: React.FC<ActivityListProps> = ({ activities, onStartStop, onMenuPress }) => {
+const ActivityList: React.FC<ActivityListProps> = ({ activities, onStartStop, onDelete }) => {
   return (
-    <View>
+    <View style={styles.container}>
       <Text style={styles.header}>Activities</Text>
-      <FlatList
-        data={activities}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ActivityItem activity={item} onStartStop={onStartStop} onMenuPress={onMenuPress} />
-        )}
-      />
+      {activities.length === 0 ? (
+        <Text style={styles.emptyText}>No activities yet. Add one above!</Text>
+      ) : (
+        <FlatList
+          data={activities}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ActivityItem activity={item} onStartStop={onStartStop} onDelete={onDelete} />
+          )}
+        />
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   header: {
     fontSize: 22,
     fontWeight: '700',
     marginHorizontal: 16,
     marginBottom: 12,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 32,
+    marginHorizontal: 16,
   },
 });
 

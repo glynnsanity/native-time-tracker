@@ -25,8 +25,15 @@ const ActivityInput: React.FC<ActivityInputProps> = ({ onAddActivity }) => {
         placeholderTextColor="#999"
         value={activityName}
         onChangeText={setActivityName}
+        onSubmitEditing={handleAdd}
+        returnKeyType="done"
       />
-      <TouchableOpacity onPress={handleAdd} style={styles.addButton}>
+      <TouchableOpacity
+        onPress={handleAdd}
+        style={styles.addButton}
+        accessibilityRole="button"
+        accessibilityLabel="Add activity"
+      >
         <Ionicons name="add" size={24} color="white" />
       </TouchableOpacity>
     </View>

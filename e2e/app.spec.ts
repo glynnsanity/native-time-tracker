@@ -5,7 +5,7 @@ test.describe('TimeTrackingApp', () => {
     await page.goto('/');
 
     // Wait for the app to fully load by checking for the Activities header
-    await expect(page.getByText('Activities')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Activities', { exact: true })).toBeVisible({ timeout: 30000 });
 
     // Verify the activity input field is present
     await expect(page.getByPlaceholder('+ Add new activity')).toBeVisible();

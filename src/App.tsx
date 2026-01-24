@@ -5,12 +5,12 @@ import ActivityList from './components/ActivityList';
 import { useActivities } from './hooks/useActivities';
 
 const App: React.FC = () => {
-  const { activities, addActivity, toggleActivityRunning } = useActivities();
+  const { activities, addActivity, toggleActivityRunning, deleteActivity } = useActivities();
 
   return (
     <SafeAreaView style={styles.container}>
       <ActivityInput onAddActivity={addActivity} />
-      <ActivityList activities={activities} onStartStop={toggleActivityRunning} onMenuPress={() => {}} />
+      <ActivityList activities={activities} onStartStop={toggleActivityRunning} onDelete={deleteActivity} />
     </SafeAreaView>
   );
 };
