@@ -6,6 +6,21 @@
     "slug": "time-tracking-app",
     "version": "1.0.0",
     "platforms": ["ios", "android", "web"],
+    "ios": {
+      "bundleIdentifier": "com.timetrackingapp",
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.YOUR_IOS_CLIENT_ID"
+            ]
+          }
+        ]
+      }
+    },
+    "android": {
+      "package": "com.timetrackingapp"
+    },
     "web": {
       "bundler": "metro"
     }

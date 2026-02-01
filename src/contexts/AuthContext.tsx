@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
+import { subscriptionService } from '../services/subscriptionService';
 
 // Local type definitions (avoids importing from @supabase/supabase-js which breaks web)
 interface User {
@@ -59,6 +60,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        // Handle RevenueCat user identification
+        if (event === 'SIGNED_IN' && session?.user) {
+          await subscriptionService.initialize(session.user.id);
+          await subscriptionService.login(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          await subscriptionService.logout();
+        }
+
         setState((prev) => ({
           ...prev,
           user: session?.user ?? null,
@@ -83,6 +92,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Check for existing session
       const { data: { session } } = await supabase.auth.getSession();
+
+      // Initialize RevenueCat if user is logged in
+      if (session?.user) {
+        await subscriptionService.initialize(session.user.id);
+        await subscriptionService.login(session.user.id);
+      } else {
+        // Initialize RevenueCat without user ID for anonymous usage
+        await subscriptionService.initialize();
+      }
 
       setState({
         user: session?.user ?? null,
@@ -139,6 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    await subscriptionService.logout();
     await AsyncStorage.removeItem(AUTH_SKIPPED_KEY);
     setState((prev) => ({
       ...prev,

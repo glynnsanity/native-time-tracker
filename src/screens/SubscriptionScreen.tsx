@@ -26,7 +26,7 @@ const SubscriptionScreen: React.FC = () => {
   const [restoring, setRestoring] = useState(false);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
-  const [selectedPlanId, setSelectedPlanId] = useState<string>('premium_yearly');
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,6 +43,9 @@ const SubscriptionScreen: React.FC = () => {
       ]);
       setPlans(fetchedPlans);
       setStatus(fetchedStatus);
+      // Select yearly plan by default
+      const yearlyPlan = fetchedPlans.find((p) => p.period === 'yearly');
+      setSelectedPlan(yearlyPlan || fetchedPlans[0] || null);
     } catch (err: any) {
       setError(err.message || 'Failed to load subscription data');
     } finally {
@@ -51,13 +54,13 @@ const SubscriptionScreen: React.FC = () => {
   };
 
   const handleSubscribe = async () => {
-    if (!selectedPlanId) return;
+    if (!selectedPlan) return;
 
     setSubscribing(true);
     setError(null);
 
     try {
-      const result = await subscriptionService.subscribe(selectedPlanId);
+      const result = await subscriptionService.subscribe(selectedPlan);
 
       if (result.success) {
         Alert.alert('Success', 'You are now subscribed to Premium!', [
@@ -95,8 +98,6 @@ const SubscriptionScreen: React.FC = () => {
       setRestoring(false);
     }
   };
-
-  const selectedPlan = plans.find((p) => p.id === selectedPlanId);
 
   if (loading) {
     return (
@@ -140,18 +141,18 @@ const SubscriptionScreen: React.FC = () => {
               key={plan.id}
               style={[
                 styles.planOption,
-                selectedPlanId === plan.id && styles.planOptionSelected,
+                selectedPlan?.id === plan.id && styles.planOptionSelected,
               ]}
-              onPress={() => setSelectedPlanId(plan.id)}
+              onPress={() => setSelectedPlan(plan)}
             >
               <View style={styles.planOptionHeader}>
                 <View
                   style={[
                     styles.radioOuter,
-                    selectedPlanId === plan.id && styles.radioOuterSelected,
+                    selectedPlan?.id === plan.id && styles.radioOuterSelected,
                   ]}
                 >
-                  {selectedPlanId === plan.id && <View style={styles.radioInner} />}
+                  {selectedPlan?.id === plan.id && <View style={styles.radioInner} />}
                 </View>
                 <View>
                   <Text style={styles.planName}>
@@ -161,7 +162,7 @@ const SubscriptionScreen: React.FC = () => {
                     )}
                   </Text>
                   <Text style={styles.planPrice}>
-                    ${plan.price}/{plan.period === 'yearly' ? 'year' : 'month'}
+                    {plan.priceString}/{plan.period === 'yearly' ? 'year' : 'month'}
                   </Text>
                 </View>
               </View>
@@ -204,7 +205,7 @@ const SubscriptionScreen: React.FC = () => {
         <Button
           title={subscribing ? 'Processing...' : 'Subscribe & Start Trial'}
           onPress={handleSubscribe}
-          disabled={subscribing || !selectedPlanId}
+          disabled={subscribing || !selectedPlan}
           loading={subscribing}
         />
       </View>
