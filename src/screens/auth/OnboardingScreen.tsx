@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   illustrationPlaceholder: {
     width: 280,
     height: 200,
-    backgroundColor: '#E8F4F5',
+    backgroundColor: colors.accentBackgroundTeal,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',

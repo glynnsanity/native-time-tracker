@@ -16,10 +16,10 @@ const ActivityList: React.FC<ActivityListProps> = ({
   onMenuPress,
 }) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="activity-list">
       <Text style={styles.header}>Activities</Text>
       {activities.length === 0 ? (
-        <Text style={styles.emptyText}>No activities yet. Add one above!</Text>
+        <Text style={styles.emptyText} testID="empty-state">No activities yet. Add one above!</Text>
       ) : (
         <FlatList
           data={activities}
@@ -32,6 +32,7 @@ const ActivityList: React.FC<ActivityListProps> = ({
             />
           )}
           showsVerticalScrollIndicator={false}
+          testID="activities-flatlist"
         />
       )}
     </View>

@@ -34,6 +34,14 @@ export const colors = {
   chartStudy: '#FF9500',
   chartReading: '#007AFF',
   chartExercise: '#34C759',
+  chartPurple: '#AF52DE',
+  chartPink: '#FF2D55',
+
+  // Social/third-party colors
+  googleBlue: '#4285F4',
+
+  // Additional accent backgrounds
+  accentBackgroundTeal: '#E8F4F5',
 
   // Border and divider colors
   border: '#E0E0E0',

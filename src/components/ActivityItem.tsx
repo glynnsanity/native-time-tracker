@@ -42,10 +42,10 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ activity, onStartStop, onMe
   }, [activity.running, activity.start, activity.time]);
 
   return (
-    <View style={styles.card}>
+    <View style={styles.card} testID={`activity-item-${activity.id}`}>
       <View style={styles.info}>
-        <Text style={styles.activityName}>{activity.name}</Text>
-        <Text style={styles.time}>{formatTime(displayTime)}</Text>
+        <Text style={styles.activityName} testID="activity-name">{activity.name}</Text>
+        <Text style={styles.time} testID="activity-time">{formatTime(displayTime)}</Text>
       </View>
       <View style={styles.actions}>
         <TouchableOpacity
@@ -53,6 +53,7 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ activity, onStartStop, onMe
           style={[styles.playButton, activity.running && styles.playButtonActive]}
           accessibilityRole="button"
           accessibilityLabel={activity.running ? 'Pause timer' : 'Start timer'}
+          testID={activity.running ? 'pause-button' : 'play-button'}
         >
           <Ionicons
             name={activity.running ? 'pause' : 'play'}
@@ -65,6 +66,7 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ activity, onStartStop, onMe
           style={styles.menuButton}
           accessibilityRole="button"
           accessibilityLabel="Activity options"
+          testID="activity-menu"
         >
           <Ionicons name="ellipsis-vertical" size={20} color={colors.textSecondary} />
         </TouchableOpacity>

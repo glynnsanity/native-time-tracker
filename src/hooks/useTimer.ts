@@ -12,7 +12,7 @@ export function useTimer(activities: Activity[], setActivities: React.Dispatch<R
         setActivities((prevActivities) =>
           prevActivities.map((activity) =>
             activity.running
-              ? { ...activity, time: activity.time + 1 / 60 }
+              ? { ...activity, time: activity.time + 1 }
               : activity
           )
         );

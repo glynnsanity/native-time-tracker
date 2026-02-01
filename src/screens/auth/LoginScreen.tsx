@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,15 @@ import {
   Platform,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button, Input } from '../../components/ui';
 import { colors, spacing, typography } from '../../theme';
+import { validateEmail, validateLoginPassword } from '../../utils/validation';
+import { useGoogleAuth, handleGoogleResponse, isGoogleAuthConfigured } from '../../services/googleAuth';
+import { signInWithApple, isAppleAuthAvailable } from '../../services/appleAuth';
 import type { AuthStackScreenProps } from '../../navigation/types';
 
 type Props = AuthStackScreenProps<'Login'>;
@@ -24,10 +28,36 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | undefined>();
+  const [passwordError, setPasswordError] = useState<string | undefined>();
+
+  const validateFields = useCallback((): boolean => {
+    const emailResult = validateEmail(email);
+    const passwordResult = validateLoginPassword(password);
+
+    setEmailError(emailResult.error);
+    setPasswordError(passwordResult.error);
+
+    return emailResult.isValid && passwordResult.isValid;
+  }, [email, password]);
+
+  const handleEmailChange = useCallback((text: string) => {
+    setEmail(text);
+    if (emailError) {
+      const result = validateEmail(text);
+      setEmailError(result.error);
+    }
+  }, [emailError]);
+
+  const handlePasswordChange = useCallback((text: string) => {
+    setPassword(text);
+    if (passwordError) {
+      setPasswordError(undefined);
+    }
+  }, [passwordError]);
 
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
-      setError('Please fill in all fields');
+    if (!validateFields()) {
       return;
     }
 
@@ -43,12 +73,73 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    Alert.alert('Coming Soon', 'Google Sign-In will be available soon.');
+  const isFormValid = email.trim().length > 0 && password.length > 0;
+
+  // Social auth state
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+
+  // Google auth
+  const { request: googleRequest, response: googleResponse, promptAsync: googlePromptAsync } = useGoogleAuth();
+
+  // Check Apple auth availability
+  useEffect(() => {
+    isAppleAuthAvailable().then(setAppleAvailable);
+  }, []);
+
+  // Handle Google auth response
+  useEffect(() => {
+    if (googleResponse) {
+      setGoogleLoading(true);
+      handleGoogleResponse(googleResponse).then((result) => {
+        setGoogleLoading(false);
+        if (!result.success && result.error) {
+          setError(result.error);
+        }
+      });
+    }
+  }, [googleResponse]);
+
+  const handleGoogleSignIn = async () => {
+    if (!isGoogleAuthConfigured()) {
+      Alert.alert(
+        'Configuration Required',
+        'Google Sign-In requires configuration. Please add your Google OAuth client IDs to enable this feature.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      await googlePromptAsync();
+    } catch (err: any) {
+      setError(err.message || 'Failed to start Google Sign-In');
+      setGoogleLoading(false);
+    }
   };
 
-  const handleAppleSignIn = () => {
-    Alert.alert('Coming Soon', 'Apple Sign-In will be available soon.');
+  const handleAppleSignIn = async () => {
+    if (!appleAvailable) {
+      Alert.alert(
+        'Not Available',
+        'Apple Sign-In is only available on iOS 13 and later.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    setError(null);
+    setAppleLoading(true);
+
+    const result = await signInWithApple();
+    setAppleLoading(false);
+
+    if (!result.success && result.error) {
+      setError(result.error);
+    }
   };
 
   return (
@@ -79,25 +170,27 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               label="Email"
               placeholder="Enter your email"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={handleEmailChange}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              error={emailError}
             />
 
             <Input
               label="Password"
               placeholder="Enter your password"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={handlePasswordChange}
               secureTextEntry
+              error={passwordError}
             />
 
             <Button
               title="Login"
               onPress={handleLogin}
               loading={loading}
-              disabled={loading}
+              disabled={loading || !isFormValid}
             />
 
             <View style={styles.signUpLink}>
@@ -110,19 +203,33 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.divider} />
 
             <Button
-              title="Continue with Google"
+              title={googleLoading ? 'Signing in...' : 'Continue with Google'}
               onPress={handleGoogleSignIn}
               variant="outline"
-              icon={<Text style={styles.googleIcon}>G</Text>}
+              disabled={googleLoading || appleLoading}
+              icon={
+                googleLoading ? (
+                  <ActivityIndicator size="small" color={colors.googleBlue} />
+                ) : (
+                  <Text style={styles.googleIcon}>G</Text>
+                )
+              }
             />
 
             <View style={styles.buttonSpacer} />
 
             <Button
-              title="Continue with Apple"
+              title={appleLoading ? 'Signing in...' : 'Continue with Apple'}
               onPress={handleAppleSignIn}
               variant="dark"
-              icon={<Ionicons name="logo-apple" size={20} color={colors.textInverse} />}
+              disabled={googleLoading || appleLoading}
+              icon={
+                appleLoading ? (
+                  <ActivityIndicator size="small" color={colors.textInverse} />
+                ) : (
+                  <Ionicons name="logo-apple" size={20} color={colors.textInverse} />
+                )
+              }
             />
           </View>
         </ScrollView>
@@ -199,7 +306,7 @@ const styles = StyleSheet.create({
   googleIcon: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#4285F4',
+    color: colors.googleBlue,
   },
   buttonSpacer: {
     height: spacing.md,

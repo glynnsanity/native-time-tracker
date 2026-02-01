@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { colors, spacing, borderRadius } from '../theme';
 
 interface AddActivityButtonProps {
   onAddActivity: () => void;
@@ -19,18 +20,17 @@ const AddActivityButton: React.FC<AddActivityButtonProps> = ({ onAddActivity }) 
 
 export default AddActivityButton;
 
-// Define styles
 const styles = StyleSheet.create({
   button: {
-    marginTop: 16,
-    backgroundColor: '#28a745',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    marginTop: spacing.lg,
+    backgroundColor: colors.success,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontWeight: 'bold',
     fontSize: 16,
   },

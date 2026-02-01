@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { Activity } from '../types';
+import { Activity, TimeEntry } from '../types';
+import { colors } from '../theme';
 
 export type Period = 'day' | 'week' | 'month';
 
@@ -27,12 +28,12 @@ export interface AnalyticsData {
 }
 
 const ACTIVITY_COLORS = [
-  '#0B4850', // Teal (Work)
-  '#FF9500', // Orange (Study)
-  '#007AFF', // Blue (Reading)
-  '#34C759', // Green
-  '#AF52DE', // Purple
-  '#FF2D55', // Pink
+  colors.chartWork,
+  colors.chartStudy,
+  colors.chartReading,
+  colors.chartExercise,
+  colors.chartPurple,
+  colors.chartPink,
 ];
 
 const formatTime = (totalSeconds: number): string => {
@@ -61,6 +62,85 @@ const getWeekDates = (offset: number = 0): Date[] => {
   return dates;
 };
 
+const isSameDay = (date1: Date, date2: Date): boolean => {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  );
+};
+
+const getDateString = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
+
+/**
+ * Calculate daily totals from time entries
+ */
+const calculateDailyTotals = (
+  activities: Activity[],
+  weekDates: Date[]
+): Map<string, number> => {
+  const dailyTotals = new Map<string, number>();
+
+  // Initialize all days with 0
+  weekDates.forEach((date) => {
+    dailyTotals.set(getDateString(date), 0);
+  });
+
+  // Calculate totals from time entries
+  activities.forEach((activity) => {
+    if (activity.timeEntries && activity.timeEntries.length > 0) {
+      activity.timeEntries.forEach((entry) => {
+        const entryDate = new Date(entry.startTime);
+        const dateStr = getDateString(entryDate);
+
+        // Only count entries within the week range
+        if (weekDates.some((d) => isSameDay(d, entryDate))) {
+          const current = dailyTotals.get(dateStr) || 0;
+          dailyTotals.set(dateStr, current + entry.duration);
+        }
+      });
+    }
+  });
+
+  return dailyTotals;
+};
+
+/**
+ * Fallback calculation for activities without time entries
+ * Uses total activity time distributed across days
+ */
+const calculateFallbackDailyTotals = (
+  activities: Activity[],
+  weekDates: Date[]
+): Map<string, number> => {
+  const dailyTotals = new Map<string, number>();
+  const today = new Date();
+
+  // Get activities that don't have time entries but have time tracked
+  const activitiesWithoutEntries = activities.filter(
+    (a) => a.time > 0 && (!a.timeEntries || a.timeEntries.length === 0)
+  );
+
+  if (activitiesWithoutEntries.length === 0) {
+    return dailyTotals;
+  }
+
+  const totalTime = activitiesWithoutEntries.reduce((sum, a) => sum + a.time, 0);
+
+  // Distribute time across past days of the week
+  const pastDays = weekDates.filter((d) => d <= today);
+  if (pastDays.length > 0) {
+    const perDay = totalTime / pastDays.length;
+    pastDays.forEach((date) => {
+      dailyTotals.set(getDateString(date), perDay);
+    });
+  }
+
+  return dailyTotals;
+};
+
 export const useAnalytics = (
   activities: Activity[],
   period: Period = 'week',
@@ -69,29 +149,30 @@ export const useAnalytics = (
   return useMemo(() => {
     const weekDates = getWeekDates(weekOffset);
 
-    // For now, we'll simulate daily data based on total activity time
-    // In a real app, you'd have time entries with timestamps
-    const totalActivityTime = activities.reduce((sum, a) => sum + a.time, 0);
-    const avgPerDay = totalActivityTime / 7;
+    // Calculate daily totals from real time entries
+    const realDailyTotals = calculateDailyTotals(activities, weekDates);
 
-    // Generate simulated daily data (in production, this would come from time entries)
-    const dailyData: DailyData[] = weekDates.map((date, index) => {
-      // Simulate some variation in daily totals
-      const isToday = date.toDateString() === new Date().toDateString();
-      const isPast = date < new Date();
+    // Calculate fallback totals for activities without entries
+    const fallbackTotals = calculateFallbackDailyTotals(activities, weekDates);
 
-      let dayTotal = 0;
-      if (isPast || isToday) {
-        // Distribute time with some randomness for demo
-        const variance = 0.5 + Math.random();
-        dayTotal = avgPerDay * variance;
-      }
+    // Merge totals (real entries take precedence)
+    const mergedTotals = new Map<string, number>();
+    weekDates.forEach((date) => {
+      const dateStr = getDateString(date);
+      const realTotal = realDailyTotals.get(dateStr) || 0;
+      const fallbackTotal = fallbackTotals.get(dateStr) || 0;
+      // Use real data if available, otherwise use fallback
+      mergedTotals.set(dateStr, realTotal > 0 ? realTotal : fallbackTotal);
+    });
 
+    // Generate daily data for the chart
+    const dailyData: DailyData[] = weekDates.map((date) => {
+      const dateStr = getDateString(date);
       return {
-        date: date.toISOString().split('T')[0],
+        date: dateStr,
         dayName: getDayName(date),
         dayNum: date.getDate(),
-        totalSeconds: dayTotal,
+        totalSeconds: mergedTotals.get(dateStr) || 0,
       };
     });
 
@@ -100,6 +181,9 @@ export const useAnalytics = (
     const daysWithData = dailyData.filter((d) => d.totalSeconds > 0).length;
     const avgDailySeconds = daysWithData > 0 ? totalSeconds / daysWithData : 0;
     const maxDailySeconds = Math.max(...dailyData.map((d) => d.totalSeconds), 1);
+
+    // Calculate total activity time for breakdown
+    const totalActivityTime = activities.reduce((sum, a) => sum + a.time, 0);
 
     // Activity breakdown
     const activityBreakdown: ActivityBreakdown[] = activities

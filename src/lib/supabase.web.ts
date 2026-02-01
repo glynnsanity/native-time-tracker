@@ -1,10 +1,13 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import config from '../config/env';
+/**
+ * Supabase Client - Web Version
+ *
+ * Uses mock client on web to avoid import.meta compatibility issues.
+ * Real authentication should use native apps.
+ */
 
-export const isSupabaseConfigured = config.isConfigured;
+export const isSupabaseConfigured = false;
 
-// Database types
+// Database types (same as native)
 export interface Database {
   public: {
     Tables: {
@@ -73,16 +76,16 @@ export interface Database {
   };
 }
 
-// Mock auth interface that mimics Supabase auth for development
+// Mock auth interface
 const mockAuth = {
   getSession: async () => ({ data: { session: null }, error: null }),
   signUp: async ({ email, password }: { email: string; password: string }) => ({
     data: { user: null, session: null },
-    error: { message: 'Supabase not configured. Use Skip to test the app.' } as any,
+    error: { message: 'Please use the mobile app for authentication.' } as any,
   }),
   signInWithPassword: async ({ email, password }: { email: string; password: string }) => ({
     data: { user: null, session: null },
-    error: { message: 'Supabase not configured. Use Skip to test the app.' } as any,
+    error: { message: 'Please use the mobile app for authentication.' } as any,
   }),
   signOut: async () => ({ error: null }),
   onAuthStateChange: (callback: any) => ({
@@ -94,15 +97,15 @@ const mockAuth = {
   }),
   updateUser: async (updates: any) => ({
     data: { user: null },
-    error: { message: 'Supabase not configured.' } as any,
+    error: { message: 'Please use the mobile app for authentication.' } as any,
   }),
   signInWithIdToken: async (credentials: { provider: string; token: string; nonce?: string }) => ({
     data: { user: null, session: null },
-    error: { message: 'Supabase not configured. Use Skip to test the app.' } as any,
+    error: { message: 'Please use the mobile app for authentication.' } as any,
   }),
 };
 
-// Mock query builder for development
+// Mock query builder
 const createMockQueryBuilder = () => {
   const builder: any = {
     select: () => builder,
@@ -119,26 +122,8 @@ const createMockQueryBuilder = () => {
   return builder;
 };
 
-// Mock Supabase client for development without credentials
-const mockSupabase = {
+// Mock Supabase client for web
+export const supabase = {
   auth: mockAuth,
   from: (table: string) => createMockQueryBuilder(),
 };
-
-// Create real Supabase client when credentials are available
-let supabaseClient: SupabaseClient<Database> | typeof mockSupabase;
-
-if (isSupabaseConfigured) {
-  supabaseClient = createClient<Database>(config.supabaseUrl, config.supabaseAnonKey, {
-    auth: {
-      storage: AsyncStorage,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-    },
-  });
-} else {
-  supabaseClient = mockSupabase;
-}
-
-export const supabase = supabaseClient;
