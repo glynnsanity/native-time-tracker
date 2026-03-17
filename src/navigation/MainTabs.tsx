@@ -3,15 +3,14 @@ import { Animated, StyleSheet, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import type { MainTabParamList } from './types';
-import { colors, spacing } from '../theme';
+import { useThemeColors } from '../hooks/useThemeColors';
 
-import TimerScreen from '../screens/main/TimerScreen';
 import HomeScreen from '../screens/main/HomeScreen';
 import DataScreen from '../screens/main/DataScreen';
+import SettingsScreen from '../screens/main/SettingsScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-// Animated tab icon component
 interface AnimatedTabIconProps {
   name: keyof typeof Ionicons.glyphMap;
   color: string;
@@ -75,6 +74,8 @@ const tabIconStyles = StyleSheet.create({
 });
 
 const MainTabs: React.FC = () => {
+  const colors = useThemeColors();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -96,15 +97,6 @@ const MainTabs: React.FC = () => {
       initialRouteName="Home"
     >
       <Tab.Screen
-        name="Timer"
-        component={TimerScreen}
-        options={{
-          tabBarIcon: ({ color, size, focused }) => (
-            <AnimatedTabIcon name="timer-outline" size={size} color={color} focused={focused} />
-          ),
-        }}
-      />
-      <Tab.Screen
         name="Home"
         component={HomeScreen}
         options={{
@@ -119,6 +111,15 @@ const MainTabs: React.FC = () => {
         options={{
           tabBarIcon: ({ color, size, focused }) => (
             <AnimatedTabIcon name="trending-up-outline" size={size} color={color} focused={focused} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedTabIcon name="settings-outline" size={size} color={color} focused={focused} />
           ),
         }}
       />

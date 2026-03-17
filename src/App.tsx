@@ -1,15 +1,15 @@
 import React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
-import { AuthProvider } from './contexts/AuthContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import Navigation from './navigation';
 
 const App: React.FC = () => {
   return (
     <GestureHandlerRootView style={styles.container}>
-      <AuthProvider>
+      <SettingsProvider>
         <Navigation />
-      </AuthProvider>
+      </SettingsProvider>
     </GestureHandlerRootView>
   );
 };

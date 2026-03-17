@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
-import { colors, spacing, borderRadius, typography } from '../../theme';
+import { useThemeColors } from '../../hooks/useThemeColors';
+import { spacing, borderRadius, typography } from '../../theme';
 
 interface Segment {
   label: string;
@@ -20,20 +21,29 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
   onValueChange,
   style,
 }) => {
+  const colors = useThemeColors();
+
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, { backgroundColor: colors.backgroundSecondary }, style]}>
       {segments.map((segment) => {
         const isSelected = segment.value === selectedValue;
         return (
           <TouchableOpacity
             key={segment.value}
-            style={[styles.segment, isSelected && styles.segmentSelected]}
+            style={[
+              styles.segment,
+              isSelected && [styles.segmentSelected, { backgroundColor: colors.card }],
+            ]}
             onPress={() => onValueChange(segment.value)}
             accessibilityRole="button"
             accessibilityState={{ selected: isSelected }}
           >
             <Text
-              style={[styles.segmentText, isSelected && styles.segmentTextSelected]}
+              style={[
+                styles.segmentText,
+                { color: colors.textSecondary },
+                isSelected && { color: colors.textPrimary },
+              ]}
             >
               {segment.label}
             </Text>
@@ -47,7 +57,6 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: colors.backgroundSecondary,
     borderRadius: borderRadius.lg,
     padding: spacing.xs,
   },
@@ -59,7 +68,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   segmentSelected: {
-    backgroundColor: colors.card,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -68,10 +76,6 @@ const styles = StyleSheet.create({
   },
   segmentText: {
     ...typography.buttonSmall,
-    color: colors.textSecondary,
-  },
-  segmentTextSelected: {
-    color: colors.textPrimary,
   },
 });
 

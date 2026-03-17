@@ -6,7 +6,8 @@ import SimpleAreaChart from '../../components/charts/SimpleAreaChart';
 import ActivityBreakdownChart from '../../components/charts/ActivityBreakdown';
 import { useActivities } from '../../hooks/useActivities';
 import { useAnalytics, formatTimeDisplay, Period } from '../../hooks/useAnalytics';
-import { colors, spacing, typography, borderRadius } from '../../theme';
+import { useThemeColors } from '../../hooks/useThemeColors';
+import { spacing, typography, borderRadius } from '../../theme';
 import type { MainTabScreenProps } from '../../navigation/types';
 
 type Props = MainTabScreenProps<'Data'>;
@@ -18,6 +19,7 @@ const PERIOD_OPTIONS = [
 ];
 
 const DataScreen: React.FC<Props> = () => {
+  const colors = useThemeColors();
   const { activities } = useActivities();
   const [period, setPeriod] = useState<Period>('week');
   const [weekOffset, setWeekOffset] = useState(0);
@@ -40,13 +42,12 @@ const DataScreen: React.FC<Props> = () => {
     }
   };
 
-  // Ensure maxValue is at least 12 hours for proper chart scaling
   const chartMaxValue = Math.max(analytics.maxDailySeconds, 12 * 3600);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Chart</Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>Analytics</Text>
 
         <SegmentedControl
           segments={PERIOD_OPTIONS}
@@ -63,7 +64,7 @@ const DataScreen: React.FC<Props> = () => {
           >
             <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.weekLabel}>{getWeekLabel()}</Text>
+          <Text style={[styles.weekLabel, { color: colors.textPrimary }]}>{getWeekLabel()}</Text>
           <TouchableOpacity
             onPress={handleNextWeek}
             style={[styles.navButton, weekOffset >= 0 && styles.navButtonDisabled]}
@@ -78,26 +79,26 @@ const DataScreen: React.FC<Props> = () => {
           </TouchableOpacity>
         </View>
 
-        <Card style={styles.chartCard}>
+        <Card style={[styles.chartCard, { backgroundColor: colors.card }]}>
           <SimpleAreaChart
             data={analytics.dailyData}
             maxValue={chartMaxValue}
           />
         </Card>
 
-        <Card style={styles.summaryCard}>
+        <Card style={[styles.summaryCard, { backgroundColor: colors.card }]}>
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>
+              <Text style={[styles.summaryValue, { color: colors.textPrimary }]}>
                 {formatTimeDisplay(analytics.avgDailySeconds)}
               </Text>
-              <Text style={styles.summaryLabel}>Avg daily time</Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Avg daily time</Text>
             </View>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>
+              <Text style={[styles.summaryValue, { color: colors.textPrimary }]}>
                 {formatTimeDisplay(analytics.totalSeconds)}
               </Text>
-              <Text style={styles.summaryLabel}>Total time this week</Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total time this week</Text>
             </View>
           </View>
         </Card>
@@ -113,7 +114,6 @@ const DataScreen: React.FC<Props> = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -121,7 +121,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: colors.textPrimary,
     marginTop: spacing.lg,
     marginBottom: spacing.lg,
   },
@@ -143,7 +142,6 @@ const styles = StyleSheet.create({
   weekLabel: {
     ...typography.body,
     fontWeight: '500',
-    color: colors.textPrimary,
     marginHorizontal: spacing.lg,
   },
   chartCard: {
@@ -162,12 +160,10 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     ...typography.h3,
-    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   summaryLabel: {
     ...typography.bodySmall,
-    color: colors.textSecondary,
   },
   bottomPadding: {
     height: spacing['3xl'],

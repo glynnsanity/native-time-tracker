@@ -10,7 +10,8 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius } from '../../theme';
+import { useThemeColors } from '../../hooks/useThemeColors';
+import { spacing, borderRadius } from '../../theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -33,6 +34,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   height = 'auto',
   contentStyle,
 }) => {
+  const colors = useThemeColors();
   const translateY = React.useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   React.useEffect(() => {
@@ -61,18 +63,19 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     >
       <View style={styles.overlay}>
         <TouchableWithoutFeedback onPress={onClose}>
-          <View style={styles.backdrop} />
+          <View style={[styles.backdrop, { backgroundColor: colors.overlay }]} />
         </TouchableWithoutFeedback>
 
         <Animated.View
           style={[
             styles.sheet,
+            { backgroundColor: colors.card },
             height !== 'auto' && { height },
             { transform: [{ translateY }] },
             contentStyle,
           ]}
         >
-          {showHandle && <View style={styles.handle} />}
+          {showHandle && <View style={[styles.handle, { backgroundColor: colors.borderLight }]} />}
 
           {showCloseButton && (
             <TouchableOpacity
@@ -99,10 +102,8 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.overlay,
   },
   sheet: {
-    backgroundColor: colors.card,
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
     paddingBottom: spacing['3xl'],
@@ -111,7 +112,6 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: colors.borderLight,
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: spacing.md,

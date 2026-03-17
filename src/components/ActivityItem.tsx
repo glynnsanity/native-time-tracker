@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Activity } from '../types';
-import { colors, spacing, typography, borderRadius } from '../theme';
+import { useSettings } from '../contexts/SettingsContext';
+import { useThemeColors } from '../hooks/useThemeColors';
+import { spacing, typography, borderRadius } from '../theme';
 
 interface ActivityItemProps {
   activity: Activity;
@@ -10,19 +12,10 @@ interface ActivityItemProps {
   onMenuPress: (activity: Activity) => void;
 }
 
-const formatTime = (totalSeconds: number): string => {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = Math.floor(totalSeconds % 60);
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  }
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-};
-
 const ActivityItem: React.FC<ActivityItemProps> = ({ activity, onStartStop, onMenuPress }) => {
   const [displayTime, setDisplayTime] = useState(activity.time);
+  const { timeFormat } = useSettings();
+  const colors = useThemeColors();
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -41,16 +34,34 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ activity, onStartStop, onMe
     };
   }, [activity.running, activity.start, activity.time]);
 
+  const formatTime = (totalSeconds: number): string => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+
+    if (timeFormat === 'hm') {
+      if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}`;
+      }
+      return `${minutes}m`;
+    }
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   return (
-    <View style={styles.card} testID={`activity-item-${activity.id}`}>
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]} testID={`activity-item-${activity.id}`}>
       <View style={styles.info}>
-        <Text style={styles.activityName} testID="activity-name">{activity.name}</Text>
-        <Text style={styles.time} testID="activity-time">{formatTime(displayTime)}</Text>
+        <Text style={[styles.activityName, { color: colors.textPrimary }]} testID="activity-name">{activity.name}</Text>
+        <Text style={[styles.time, { color: colors.textPrimary }]} testID="activity-time">{formatTime(displayTime)}</Text>
       </View>
       <View style={styles.actions}>
         <TouchableOpacity
           onPress={() => onStartStop(activity.id)}
-          style={[styles.playButton, activity.running && styles.playButtonActive]}
+          style={[styles.playButton, { backgroundColor: colors.primary }, activity.running && { backgroundColor: colors.primaryLight }]}
           accessibilityRole="button"
           accessibilityLabel={activity.running ? 'Pause timer' : 'Start timer'}
           testID={activity.running ? 'pause-button' : 'play-button'}
@@ -77,7 +88,6 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ activity, onStartStop, onMe
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.card,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     marginHorizontal: spacing.lg,
@@ -86,7 +96,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
   },
   info: {
     flex: 1,
@@ -94,13 +103,11 @@ const styles = StyleSheet.create({
   activityName: {
     ...typography.body,
     fontWeight: '500',
-    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   time: {
     fontSize: 24,
     fontWeight: '400',
-    color: colors.textPrimary,
     fontVariant: ['tabular-nums'],
   },
   actions: {
@@ -111,12 +118,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  playButtonActive: {
-    backgroundColor: colors.primaryLight,
   },
   menuButton: {
     width: 32,

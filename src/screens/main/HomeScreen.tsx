@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import ActivityInput from '../../components/ActivityInput';
 import ActivityList from '../../components/ActivityList';
 import ActivityEditModal from '../../components/ActivityEditModal';
 import { useActivities } from '../../hooks/useActivities';
+import { useThemeColors } from '../../hooks/useThemeColors';
 import { Activity } from '../../types';
-import { colors, spacing, typography, borderRadius } from '../../theme';
+import { spacing, typography, borderRadius } from '../../theme';
 import type { MainTabScreenProps } from '../../navigation/types';
 
 type Props = MainTabScreenProps<'Home'>;
@@ -19,7 +19,7 @@ const MONTHS = [
 ];
 
 const HomeScreen: React.FC<Props> = () => {
-  const navigation = useNavigation();
+  const colors = useThemeColors();
   const {
     activities,
     addActivity,
@@ -71,25 +71,15 @@ const HomeScreen: React.FC<Props> = () => {
     return `${MONTHS[selectedDate.getMonth()]} ${selectedDate.getDate()}`;
   };
 
-  // Filter activities by selected date (based on when they were last updated)
   const filteredActivities = useMemo(() => {
-    // For now, show all activities. In a full implementation,
-    // you'd filter by timeEntries that fall on the selected date.
     return activities;
   }, [activities, selectedDate]);
 
   return (
-    <SafeAreaView style={styles.container} testID="home-screen">
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} testID="home-screen">
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Settings')}
-          accessibilityRole="button"
-          accessibilityLabel="Settings"
-          testID="settings-button"
-        >
-          <Ionicons name="settings-outline" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{formatHeaderDate()}</Text>
+        <View style={{ width: 24 }} />
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>{formatHeaderDate()}</Text>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Calendar"
@@ -145,6 +135,7 @@ const CalendarModal: React.FC<CalendarModalProps> = ({
   onSelectDate,
   onClose,
 }) => {
+  const colors = useThemeColors();
   const [viewDate, setViewDate] = useState(new Date(selectedDate));
 
   const getDaysInMonth = (date: Date): number => {
@@ -188,12 +179,10 @@ const CalendarModal: React.FC<CalendarModalProps> = ({
     const firstDay = getFirstDayOfMonth(viewDate);
     const days = [];
 
-    // Empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
       days.push(<View key={`empty-${i}`} style={calendarStyles.dayCell} />);
     }
 
-    // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const selected = isSelected(day);
       const today = isTodayDate(day);
@@ -203,16 +192,17 @@ const CalendarModal: React.FC<CalendarModalProps> = ({
           key={day}
           style={[
             calendarStyles.dayCell,
-            selected && calendarStyles.selectedDay,
-            today && !selected && calendarStyles.todayDay,
+            selected && [calendarStyles.selectedDay, { backgroundColor: colors.primary }],
+            today && !selected && [calendarStyles.todayDay, { borderColor: colors.primary }],
           ]}
           onPress={() => handleSelectDate(day)}
         >
           <Text
             style={[
               calendarStyles.dayText,
+              { color: colors.textPrimary },
               selected && calendarStyles.selectedDayText,
-              today && !selected && calendarStyles.todayDayText,
+              today && !selected && { color: colors.primary, fontWeight: '600' as const },
             ]}
           >
             {day}
@@ -226,13 +216,13 @@ const CalendarModal: React.FC<CalendarModalProps> = ({
 
   return (
     <Modal visible={visible} animationType="fade" transparent>
-      <TouchableOpacity style={calendarStyles.overlay} activeOpacity={1} onPress={onClose}>
-        <View style={calendarStyles.container}>
+      <TouchableOpacity style={[calendarStyles.overlay, { backgroundColor: colors.overlay }]} activeOpacity={1} onPress={onClose}>
+        <View style={[calendarStyles.container, { backgroundColor: colors.card }]}>
           <View style={calendarStyles.header}>
             <TouchableOpacity onPress={() => navigateMonth(-1)}>
               <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
             </TouchableOpacity>
-            <Text style={calendarStyles.monthYear}>
+            <Text style={[calendarStyles.monthYear, { color: colors.textPrimary }]}>
               {MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}
             </Text>
             <TouchableOpacity onPress={() => navigateMonth(1)}>
@@ -242,7 +232,7 @@ const CalendarModal: React.FC<CalendarModalProps> = ({
 
           <View style={calendarStyles.weekdays}>
             {WEEKDAYS.map((day) => (
-              <Text key={day} style={calendarStyles.weekdayText}>
+              <Text key={day} style={[calendarStyles.weekdayText, { color: colors.textTertiary }]}>
                 {day}
               </Text>
             ))}
@@ -256,7 +246,7 @@ const CalendarModal: React.FC<CalendarModalProps> = ({
               onSelectDate(new Date());
             }}
           >
-            <Text style={calendarStyles.todayButtonText}>Go to Today</Text>
+            <Text style={[calendarStyles.todayButtonText, { color: colors.primary }]}>Go to Today</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -267,12 +257,10 @@ const CalendarModal: React.FC<CalendarModalProps> = ({
 const calendarStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   container: {
-    backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     width: '90%',
@@ -287,7 +275,6 @@ const calendarStyles = StyleSheet.create({
   monthYear: {
     ...typography.body,
     fontWeight: '600',
-    color: colors.textPrimary,
   },
   weekdays: {
     flexDirection: 'row',
@@ -297,7 +284,6 @@ const calendarStyles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     ...typography.bodySmall,
-    color: colors.textTertiary,
     fontWeight: '600',
   },
   daysGrid: {
@@ -312,24 +298,17 @@ const calendarStyles = StyleSheet.create({
   },
   dayText: {
     ...typography.body,
-    color: colors.textPrimary,
   },
   selectedDay: {
-    backgroundColor: colors.primary,
     borderRadius: borderRadius.full,
   },
   selectedDayText: {
-    color: colors.textInverse,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   todayDay: {
     borderWidth: 1,
-    borderColor: colors.primary,
     borderRadius: borderRadius.full,
-  },
-  todayDayText: {
-    color: colors.primary,
-    fontWeight: '600',
   },
   todayButton: {
     marginTop: spacing.lg,
@@ -338,7 +317,6 @@ const calendarStyles = StyleSheet.create({
   },
   todayButtonText: {
     ...typography.body,
-    color: colors.primary,
     fontWeight: '600',
   },
 });
@@ -346,7 +324,6 @@ const calendarStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -358,7 +335,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...typography.body,
     fontWeight: '600',
-    color: colors.textPrimary,
   },
   content: {
     flex: 1,
